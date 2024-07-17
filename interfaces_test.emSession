@@ -1,0 +1,53 @@
+<!DOCTYPE CrossStudio_Session_File>
+<session>
+ <Bookmarks/>
+ <Breakpoints groups="Breakpoints" active_group="Breakpoints"/>
+ <ExecutionProfileWindow/>
+ <FrameBufferWindow>
+  <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
+ </FrameBufferWindow>
+ <Memory1/>
+ <Memory2/>
+ <Memory3/>
+ <Memory4/>
+ <Project>
+  <ProjectSessionItem path="interfaces_test"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test;CMSIS Files"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test;Script Files"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test;Source Files"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test;Source Files;inc"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test;Source Files;src"/>
+  <ProjectSessionItem path="interfaces_test;interfaces_test;System Files"/>
+ </Project>
+ <Register1/>
+ <Register2/>
+ <Register3/>
+ <Register4/>
+ <Threads>
+  <ThreadsWindow showLists=""/>
+ </Threads>
+ <TraceWindow>
+  <Trace enabled="Yes"/>
+ </TraceWindow>
+ <Watch1>
+  <Watches active="1" update="Never"/>
+ </Watch1>
+ <Watch2>
+  <Watches active="0" update="Never"/>
+ </Watch2>
+ <Watch3>
+  <Watches active="0" update="Never"/>
+ </Watch3>
+ <Watch4>
+  <Watches active="0" update="Never"/>
+ </Watch4>
+ <Files>
+  <SessionOpenFile windowGroup="DockEditLeft" x="2" y="363" useTextEdit="1" path="main.c" left="0" selected="1" top="345" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" path="RCC_init.c" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="25" useTextEdit="1" path="Lib/src/gpio.c" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="6" useTextEdit="1" path="main.h" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="20" y="11" useTextEdit="1" path="Lib/inc/gpio.h" left="0" top="0" codecName="Default"/>
+ </Files>
+ <EMStudioWindow activeProject="interfaces_test" fileDialogDefaultFilter="*.h" autoConnectTarget="GDB Server" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Work/PCBteach/docs/02_MY_projects/MCU/04_Board_Test/01_GPIO_interfaces_Test" debugSearchPath="" autoConnectCapabilities="1343"/>
+</session>

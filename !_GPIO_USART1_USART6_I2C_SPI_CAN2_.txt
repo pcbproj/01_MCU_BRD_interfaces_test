@@ -1,0 +1,7 @@
+GPIO_
+USART1_
+USART6_
+I2C_
+SPI_
+CAN2_
+ - В перспективе добавить 1-wire
