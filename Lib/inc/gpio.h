@@ -7,9 +7,7 @@
 void GPIO_Init(void);
 
 void BTN_Check(uint16_t *ms_count,	// current ms counter value
-				char *S1_state,
-				char *S2_state,
-				char *S3_state);
+				char *BTN_state);
 
 
 

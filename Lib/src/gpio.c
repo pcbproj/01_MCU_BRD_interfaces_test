@@ -18,11 +18,14 @@ void GPIO_Init(void){
 
 }
 
+/* в байте состояний кнопко выставляются в 1 и сбрасываются в 0 соответствующие биты, при нажатии кнопок
+бит 0 - кнопка S1. Если кнопка нажата, то бит равен 1. Если кнопка отпущена, то бит равен 0.
+бит 1 - кнопка S2. Если кнопка нажата, то бит равен 1. Если кнопка отпущена, то бит равен 0.
+бит 2 - кнопка S3. Если кнопка нажата, то бит равен 1. Если кнопка отпущена, то бит равен 0.
 
+*/
 void BTN_Check(uint16_t *ms_count,	// current ms counter value
-				char *S1_state,
-				char *S2_state,
-				char *S3_state)
+				char *BTN_state)
 {
 	static char S1_cnt, S2_cnt, S3_cnt;
 
@@ -32,12 +35,12 @@ void BTN_Check(uint16_t *ms_count,	// current ms counter value
 		if ((GPIOE->IDR & GPIO_IDR_ID10) == 0) {  // if S1 pressed
 			if(S1_cnt < BTN_PRESS_CNT){  
 				S1_cnt++;
-				*S1_state = 0;	// считаем кнопку S1 не нажатой
+				*BTN_state &= ~(0x01);	// считаем кнопку S1 не нажатой. 
 			}
-			else *S1_state = 1;	// считаем кнопку S1 нажатой
+			else *BTN_state |= 0x01;	// считаем кнопку S1 нажатой. выставляем в 1 нулевой бит в байте состояний кнопок
 		}
 		else{                   // if S1 released
-			*S1_state = 0;	// считаем кнопку S1 не нажатой
+			*BTN_state &= ~(0x01);	// считаем кнопку S1 не нажатой
 			S1_cnt = 0;
 		}
 		
@@ -45,12 +48,12 @@ void BTN_Check(uint16_t *ms_count,	// current ms counter value
 		if ((GPIOE->IDR & GPIO_IDR_ID11) == 0) {  // if S2 pressed
 			if(S2_cnt < BTN_PRESS_CNT){
 				S2_cnt++;
-				*S2_state = 0;
+				*BTN_state &= ~(0x02);
 			}
-			else *S2_state = 1;
+			else *BTN_state |= 0x02;	// выставляем в 1 первый бит в байте состояний кнопок
 		}
 		else{                   // if S2 released
-			*S2_state = 0;
+			*BTN_state &= ~(0x02);
 			S2_cnt = 0;
 		}
 		
@@ -58,12 +61,12 @@ void BTN_Check(uint16_t *ms_count,	// current ms counter value
 		if ((GPIOE->IDR & GPIO_IDR_ID12) == 0) {  // if S3 pressed
 			if(S3_cnt < BTN_PRESS_CNT){
 				S3_cnt++;
-				*S3_state = 0;
+				*BTN_state &= ~(0x04);
 			}
-			else *S3_state = 1;
+			else *BTN_state |= 0x04;
 		}
 		else{                   // if S3 released
-			*S3_state = 0;
+			*BTN_state &= ~(0x04);
 			S3_cnt = 0;
 		}
 
