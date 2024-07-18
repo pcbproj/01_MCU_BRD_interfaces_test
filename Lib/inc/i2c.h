@@ -15,15 +15,18 @@
 #define EEPROM_RD_START_ADDR	0x08	// чтение с 1 ячейки в страницу 2
 #define EEPROM_RD_LEN			8
 
+#define WAIT_TIME		1024
 
 enum I2C_ERR {
     	I2C_OK = 0,
     	I2C_WR_ERR,
 		I2C_RD_ERR,
-		I2C_DEV_ADDR_ERR
+		I2C_DEV_ADDR_ERR,
+		I2C_BUS_BUSY,
+		I2C_ERR_DATA
 	};
 
-enum I2C_ERR I2C_error_code = I2C_OK;
+
 
 
 void I2C_Init(void);

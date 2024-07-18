@@ -1,6 +1,6 @@
 #include "i2c.h"
 
-
+enum I2C_ERR I2C_error_code = I2C_OK;
 
 void I2C_Init(void){
 	
@@ -98,12 +98,15 @@ void I2C1_ACK_Gen_Disable(void){
 
 
 uint16_t I2C1_Tx_DeviceADDR(char device_address, char RW_bit){
-	static uint16_t wait_counter = 0;
+	uint16_t wait_counter = 0;
 	I2C1 -> DR = (device_address + RW_bit);				// отправить в I2C_DR адрес устройства и бит WR
 	
 	while((I2C1 -> SR1 & I2C_SR1_ADDR) == 0){ // ждем флаг I2C_SR1_ADDR = 1. Пока завершится передача байта адреса
 		wait_counter++;
-		if (wait_counter > 1024) return I2C_DEV_ADDR_ERR;
+		if (wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_DEV_ADDR_ERR;
+		}
 	};		
 	
 	(void)I2C1 -> SR1; 
@@ -117,68 +120,125 @@ uint16_t I2C1_Tx_DeviceADDR(char device_address, char RW_bit){
 то следующий байт пишется в первый адрес текущей страницы. 
 Таким образом, данные могут быть повреждены / перезаписаны.
 */
-void I2C_Write(char start_addr, char data[], uint16_t data_len){ // запись в EEPROM указанного массива, указанной длинны, с указанного адреса  
+uint16_t I2C_Write(char start_addr, char data[], uint16_t data_len){ // запись в EEPROM указанного массива, указанной длинны, с указанного адреса  
+	uint16_t err_code;
+	uint16_t wait_counter = 0;
 	
 	I2C1_ACK_Gen_Enable();						// включение генерации ACK
 	
-	while((I2C1 -> SR2 & I2C_SR2_BUSY) != 0){};	// проверить занятость шины I2C по флагу I2C_SR2_BUSY
+	while((I2C1 -> SR2 & I2C_SR2_BUSY) != 0){	// проверить занятость шины I2C по флагу I2C_SR2_BUSY
+		wait_counter++;
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_BUS_BUSY;
+		}
+	};	
 	
 	I2C1_StartGen();							// генерация START-условия
 	
-	I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_WR_BIT);
-	
+	err_code = I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_WR_BIT);
+	if( err_code != I2C_OK ) return err_code;
+
 	I2C1 -> DR = start_addr;	// отправить в I2C_DR адрес начальной ячейки памяти, куда хотим писать данные
-	while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){};	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
+	while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){
+		wait_counter++;
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_WR_ERR;
+		}
+	};	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
 
 	// цикл сколько байт нужно передать: 
 	// отправляем в I2C_DR байты данных, 
 	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
 	for(uint16_t i = 0; i < data_len; i++){
 		I2C1 -> DR = data[i];
-		while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){};
+		while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){
+			if(wait_counter > WAIT_TIME){
+				wait_counter = 0;
+				return I2C_WR_ERR;
+			}
+		
+		};
 	}
 
 	I2C1_StopGen();	// генерация STOP-условия
+
+	return I2C_OK;
 	
 }
 
 
 
 
-void EEPROM_PageClear(char start_addr){ // запись в EEPROM 0xFF на всю страницу 8 байт
-	
+uint16_t EEPROM_PageClear(char start_addr){ // запись в EEPROM 0xFF на всю страницу 8 байт
+	uint16_t wait_counter = 0;
+	uint16_t err_code;
+
 	I2C1_ACK_Gen_Enable();						// включение генерации ACK
 	
-	while((I2C1 -> SR2 & I2C_SR2_BUSY) != 0){};	// проверить занятость шины I2C по флагу I2C_SR2_BUSY
+	while((I2C1 -> SR2 & I2C_SR2_BUSY) != 0){		// проверить занятость шины I2C по флагу I2C_SR2_BUSY
+		wait_counter++;
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_BUS_BUSY;
+		}
+	};	
 	
 	I2C1_StartGen();							// генерация START-условия
 	
-	I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_WR_BIT);
-	
+	err_code = I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_WR_BIT);
+	if( err_code != I2C_OK ) return err_code;
+
 	I2C1 -> DR = start_addr;	// отправить в I2C_DR адрес начальной ячейки памяти, куда хотим писать данные
-	while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){};	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
+	
+	while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_WR_ERR;
+		}
+	};	
 
 	// цикл сколько байт нужно передать: 
 	// отправляем в I2C_DR байты данных, 
 	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
 	for(uint16_t i = 0; i < EEPROM_PAGE_LEN_BYTES-1; i++){
 		I2C1 -> DR = 0xFF;
-		while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){};
+		while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){
+			if(wait_counter > WAIT_TIME){
+				wait_counter = 0;
+				return I2C_WR_ERR;
+			}
+		};
 	}
 
 	I2C1_StopGen();	// генерация STOP-условия
+
+	return I2C_OK;
 }
 
 
 
-void I2C_Read(char start_addr, char rd_data[], uint16_t data_len){  // чтение из EEPROM из указанной ячейки, указанной длины массив, сохранение в указагнный масссив
+uint16_t I2C_Read(char start_addr, char rd_data[], uint16_t data_len){  // чтение из EEPROM из указанной ячейки, указанной длины массив, сохранение в указагнный масссив
+	
+	uint16_t wait_counter = 0;
+	uint16_t err_code;
+	
 	I2C1_ACK_Gen_Enable();						// включение генерации ACK
 	
-	while((I2C1 -> SR2 & I2C_SR2_BUSY) != 0){};	// проверить занятость шины I2C по флагу I2C_SR2_BUSY
+	while((I2C1 -> SR2 & I2C_SR2_BUSY) != 0){	// проверить занятость шины I2C по флагу I2C_SR2_BUSY
+		wait_counter++;
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_BUS_BUSY;
+		}
+	};	
 	
+
 	I2C1_StartGen();							// генерация START-условия
   
-	I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_WR_BIT);	// передача адреса устройства и бита WR
+	err_code = I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_WR_BIT);	// передача адреса устройства и бита WR
+	if( err_code != I2C_OK ) return err_code;
 
    /*
    передача адреса ячейки памяти с которой хотим читать
@@ -187,7 +247,13 @@ void I2C_Read(char start_addr, char rd_data[], uint16_t data_len){  // чтен�
 	*/
 
 	I2C1 -> DR = start_addr;					// отправить в I2C_DR адрес начальной ячейки памяти, откуда хотим читать данные
-	while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){};	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
+	
+	while((I2C1 -> SR1 & I2C_SR1_TXE) == 0){	// ждем флаг I2C_SR1_TXE = 1. Пока завершится передача байта данных
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_WR_ERR;
+		}
+	};
 
 	
 	/*========= Пример отправки 2-х байтного адреса ячейки памяти ===============
@@ -202,27 +268,39 @@ void I2C_Read(char start_addr, char rd_data[], uint16_t data_len){  // чтен�
 	
 	I2C1_StartGen();	// повторная генерация START-условия
 
-	I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_RD_BIT);		// передача адреса устройства и бита RD
-
+	err_code = I2C1_Tx_DeviceADDR(I2C_DEV_ADDR, I2C_RD_BIT);		// передача адреса устройства и бита RD
+	if( err_code != I2C_OK ) return err_code;
 
 	// цикл чтения данных (кол-во байт - 1):
 	// ожидание флаг I2C_SR1_RXNE = 1. - принят новый байт данных
 	// чтение регистра I2C_DR
 	for(uint16_t i = 0; i < data_len-1; i++){
-		while((I2C1 -> SR1 & I2C_SR1_RXNE) == 0){};
+		while((I2C1 -> SR1 & I2C_SR1_RXNE) == 0){
+			if(wait_counter > WAIT_TIME){
+				wait_counter = 0;
+				return I2C_RD_ERR;
+			}
+		};
 		rd_data[i] = I2C1 -> DR;
 		
 	}
 	// отключение генерации ACK-бита после принятого байта, чтобы в конце отправить NACK
 	I2C1_ACK_Gen_Disable();
 	
-	while((I2C1 -> SR1 & I2C_SR1_RXNE) == 0){};	// ожидание принятия последнего байта
+	while((I2C1 -> SR1 & I2C_SR1_RXNE) == 0){	// ожидание принятия последнего байта
+		if(wait_counter > WAIT_TIME){
+			wait_counter = 0;
+			return I2C_RD_ERR;
+		}
+	};	
+	
 	rd_data[data_len-1] = I2C1 -> DR;				// чтение регистра I2C_DR - чтение последнего принятого байта
 
 	I2C1_ACK_Gen_Enable();
 
 	I2C1_StopGen();	// генерация STOP-условия	
-
+	
+	return I2C_OK;
 
  }
 

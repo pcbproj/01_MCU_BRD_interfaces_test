@@ -94,6 +94,7 @@ void SysTick_Handler(void){		// прервание от Systick таймера, 
 
 
 int main(void) {
+	enum I2C_ERR I2C_ErrCode = I2C_OK;
 
 	const char eeprom_addr = EEPROM_RD_START_ADDR;	// адрес чтения и записи в EEPROM, передаем по I2C
 
@@ -143,16 +144,17 @@ int main(void) {
 
 
 		//============= I2C1 testing ==================
-		I2C_Write(eeprom_addr, i2c_tx_array, EEPROM_WR_LEN);	
+		I2C_ErrCode = I2C_Write(eeprom_addr, i2c_tx_array, EEPROM_WR_LEN);	
 		Delay_ms(5);
-
-		I2C_Read(eeprom_addr, i2c_rx_array, EEPROM_RD_LEN);
-		//Delay_ms(1500);
-			
-		//for(char i = 0; i < I2C_ARRAYS_LEN; i++){	// I2C compare arrays
-		//	if(i2c_tx_array[i] != i2c_rx_array[i]) I2C_ErrorCode++;
-		//}
 		
+		if(I2C_ErrCode == I2C_OK){
+			I2C_ErrCode = I2C_Read(eeprom_addr, i2c_rx_array, EEPROM_RD_LEN);
+			
+			for(uint16_t i = 0; i < EEPROM_RD_LEN; i++){
+				if(i2c_tx_array[i] != i2c_rx_array[i]) I2C_ErrCode = I2C_ERR_DATA;
+			}
+
+		}
 		
 	
 
@@ -165,17 +167,43 @@ int main(void) {
 
 
 
-		//Delay_ms(1000); // ожидаем 1 секунду и отправляем данные в интерфейсы и лог в USART1
+		
 		if(delay2_cnt > COUNTER_1000_MS) {
 			delay2_cnt = 0;
 
 			//========= USART1 LOG Sending =================
 			printf("+++ Buttons Code = %d \n", btn_state_byte);
 			
-			printf("--- I2C1 Test FAILED --- \n");
-			printf("+++ I2C1 Test PASSED SECCESSFULLY +++ \n");
+			switch(I2C_ErrCode){
+				//case I2C_OK: 
+				//	printf("+++ I2C1 Test PASSED SECCESSFULLY +++ \n");
+				//break;
+
+				case I2C_BUS_BUSY:
+					printf("--- I2C1 Test FAILED = I2C BUS BUSY --- \n");
+				break;
+
+				case I2C_DEV_ADDR_ERR:
+					printf("--- I2C1 Test FAILED = I2C ERROR DEVICE ADDRESS --- \n");
+				break;
+
+				case I2C_WR_ERR:
+					printf("--- I2C1 Test FAILED = I2C WRITE ERROR --- \n");
+				break;
+
+				case I2C_RD_ERR:
+					printf("--- I2C1 Test FAILED = I2C READ ERROR --- \n");
+				break;
+				
+				case I2C_ERR_DATA:
+					printf("--- I2C1 Test FAILED = I2C DATA COMPARE ERROR --- \n");
+				break;
+				
+				default:
+					printf("+++ I2C1 Test PASSED +++ \n");
+			}	// switch(I2C_ErrCode)
 		
-		}
+		}	// if(delay)
 
 	}	// while(1)
 	  
