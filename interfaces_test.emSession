@@ -49,7 +49,7 @@
  <Watch1>
   <Watches active="1" update="Never">
    <Watchpoint expression="S1_cnt" name="S1_cnt" radix="-1" linenumber="37" filename="Lib/src/gpio.c"/>
-   <Watchpoint expression="i2c_rx_array" name="i2c_rx_array" radix="16" linenumber="154" filename="main.c"/>
+   <Watchpoint expression="i2c_rx_array" name="i2c_rx_array" radix="16" linenumber="179" filename="main.c"/>
    <Watchpoint expression="delay_cnt" name="delay_cnt" radix="10" linenumber="80" filename="main.c"/>
   </Watches>
  </Watch1>
@@ -63,12 +63,12 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="77" useTextEdit="1" path="main.c" left="0" top="51" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="14" y="183" useTextEdit="1" path="main.c" left="0" selected="1" top="187" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="6" useTextEdit="1" path="main.h" left="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="2" y="64" useTextEdit="1" path="Lib/src/usart.c" left="0" top="39" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="26" useTextEdit="1" path="Lib/src/usart.c" left="0" top="9" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="3" useTextEdit="1" path="Lib/inc/usart.h" left="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="111" y="103" useTextEdit="1" path="Lib/src/i2c.c" left="0" selected="1" top="87" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="18" y="22" useTextEdit="1" path="Lib/inc/i2c.h" left="0" top="11" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="37" y="2" useTextEdit="1" path="Lib/src/i2c.c" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="14" y="25" useTextEdit="1" path="Lib/inc/i2c.h" left="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="33" y="27" useTextEdit="1" path="RCC_init.c" left="0" top="0" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="interfaces_test" fileDialogDefaultFilter="*.h" autoConnectTarget="GDB Server" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Work/PCBteach/docs/02_MY_projects/MCU/04_Board_Test/01_GPIO_interfaces_Test" debugSearchPath="" autoConnectCapabilities="1343"/>

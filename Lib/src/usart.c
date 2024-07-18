@@ -24,8 +24,7 @@ void USART1_Init(void){
 
 	USART1 -> BRR |= 0x2D9;	// 115200
 	
-	/* Включение приемника и передатчика */
-	USART1 -> CR1 |= USART_CR1_TE | USART_CR1_RE; 
+	USART1 -> CR1 |= USART_CR1_TE | USART_CR1_RE;					// Включение приемника и передатчика
 	USART1 -> CR1 &= ~(USART_CR1_M) | ~(USART_CR1_PCE);              // 8-бит, без контроля четности
 	USART1 -> CR2 &= ~(USART_CR2_STOP);                              // 1 стоповый бит
 	USART1 -> CR1 |= USART_CR1_UE;                                   // Включение USART1

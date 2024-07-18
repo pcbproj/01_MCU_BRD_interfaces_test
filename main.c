@@ -106,6 +106,7 @@ int main(void) {
 	*/
 
 	char I2C_ErrorCode = 0;
+	char test_start = 0;
   	
   	
   	
@@ -130,11 +131,11 @@ int main(void) {
 											// чтобы можно было видеть записанные новые данные в массиве
   
 	//usart1_send(Hello_str, sizeof(Hello_str));
-	printf("+++ System started! +++ \n");
+	printf(">>> System started! \n");
+	printf(">>> Pressed buttons indicated on LEDS \n");
+	printf(">>> For start testing, send byte 0x31 in HEX or character '1' \n");
 
 	while (1){
-		
-		
 		
 		//============= Buttons testing ================
 		BTN_Check(&btn_count, &btn_state_byte);		// проверка нажатия кнопок
@@ -142,55 +143,63 @@ int main(void) {
 		GPIOE->ODR = (~(btn_state_byte << 13));		// выдаем состояние кнопок на LED1-LED3
 
 
-
-		//============= I2C1 testing ==================
-		I2C_ErrCode = I2C_Write(eeprom_addr, i2c_tx_array, EEPROM_WR_LEN);	
-		Delay_ms(5);
-		
-		if(I2C_ErrCode == I2C_OK){
-			I2C_ErrCode = I2C_Read(eeprom_addr, i2c_rx_array, EEPROM_RD_LEN);
-			
-			for(uint16_t i = 0; i < EEPROM_RD_LEN; i++){
-				if(i2c_tx_array[i] != i2c_rx_array[i]) I2C_ErrCode = I2C_ERR_DATA;
+		if(USART1 -> SR & USART_SR_RXNE){		// IF USART1 received '1' 
+			if(USART1->DR == 0x31){
+				test_start = 1;
 			}
-
+			else{
+				test_start = 0;
+			}
 		}
-		
-	
+		else{
+			test_start = 0;
+		}
 
-		//========= SPI testing ========================
+		if{test_start){
 
-
-
-		
-		
-
-
-
-		
-		if(delay2_cnt > COUNTER_1000_MS) {
-			delay2_cnt = 0;
-
+			//============= I2C1 testing ==================
+			I2C_ErrCode = I2C_Write(eeprom_addr, i2c_tx_array, EEPROM_WR_LEN);	
+			Delay_ms(5);
+			
+			if(I2C_ErrCode == I2C_OK){
+				I2C_ErrCode = I2C_Read(eeprom_addr, i2c_rx_array, EEPROM_RD_LEN);
+			}
+			
+			if(I2C_ErrCode == I2C_OK){
+				for(uint16_t i = 0; i < EEPROM_RD_LEN; i++){
+					if(i2c_tx_array[i] != i2c_rx_array[i]) I2C_ErrCode = I2C_ERR_DATA;
+				}
+			}
+			
+			
+			
+			//========= SPI testing ========================
+			
+			
+			//========= CAN2 testing ========================
+			
+			
+			
 			//========= USART1 LOG Sending =================
-			printf("+++ Buttons Code = %d \n", btn_state_byte);
+			printf(">>> Testing FINISHED. Testing LOG: \n");
 			
 			switch(I2C_ErrCode){
 				//case I2C_OK: 
 				//	printf("+++ I2C1 Test PASSED SECCESSFULLY +++ \n");
 				//break;
-
+			
 				case I2C_BUS_BUSY:
 					printf("--- I2C1 Test FAILED = I2C BUS BUSY --- \n");
 				break;
-
+			
 				case I2C_DEV_ADDR_ERR:
 					printf("--- I2C1 Test FAILED = I2C ERROR DEVICE ADDRESS --- \n");
 				break;
-
+			
 				case I2C_WR_ERR:
 					printf("--- I2C1 Test FAILED = I2C WRITE ERROR --- \n");
 				break;
-
+			
 				case I2C_RD_ERR:
 					printf("--- I2C1 Test FAILED = I2C READ ERROR --- \n");
 				break;
@@ -202,9 +211,19 @@ int main(void) {
 				default:
 					printf("+++ I2C1 Test PASSED +++ \n");
 			}	// switch(I2C_ErrCode)
+			
+			// ======== LOG USART1 send ==========
+			
+			//======== LOG USART6 send ============
+			
+			//======== LOG SPI send ===============
+			
+			
+			//========= LOG CAN2 send ===========
 		
-		}	// if(delay)
 
+
+		}	// if (test_start)
 	}	// while(1)
 	  
 }	// main()
