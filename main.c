@@ -22,7 +22,7 @@ SPI2:
 
 CAN2:
 	bit rate = 500 kBit/s;
-	TX_FRAME_ID = 0x565;
+	TX_FRAME_ID = 0x567;
 	data_len = 1;
 
 	Принятый пакет данные отправить в USART1
@@ -129,8 +129,11 @@ int main(void) {
 	char CAN2_RxState = 0;
 	char CAN2_TxState = 0;
 	char CAN2_RxFlag = 0;
+	char const usart6_test_byte = 0x5A;
 
 	char CAN2_TxData[CAN_TX_DATA_LEN] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+
+	//char usart6_tx_array[1] = {0xA5};
   	
   	
   	RCC_Init();
@@ -207,11 +210,11 @@ int main(void) {
 		if(test_start){
 			
 			//========= USART6 testing: 0xA5 - test byte =============
-			usart6_send(0xA5, 1);
-			Delay_ms(2);
+			usart6_send(&usart6_test_byte, 1);
+			Delay_ms(10);
 			
 			if(USART6->SR & USART_SR_RXNE) {
-				if(USART6->DR == 0xA5) usart6_ErrorCode = USART6_OK;
+				if(USART6->DR == usart6_test_byte) usart6_ErrorCode = USART6_OK;
 				else usart6_ErrorCode = USART6_ERR;
 			} 
 			else{

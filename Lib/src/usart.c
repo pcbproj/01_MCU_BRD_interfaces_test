@@ -43,7 +43,7 @@ void USART6_Init(void){
 	
 	GPIOC -> MODER  |= GPIO_MODER_MODE6_1;							// Альтернативная функция для PC6 (USART1 - TX)
 	GPIOC -> AFR[0] |= (8 << GPIO_AFRL_AFSEL6_Pos);					// AF8 для PC6
-	GPIOC -> MODER  |= GPIO_MODER_MODE6_1;                           // Альтернативная функция для PC7 (USART1 - RX)
+	GPIOC -> MODER  |= GPIO_MODER_MODE7_1;                           // Альтернативная функция для PC7 (USART1 - RX)
 	GPIOC -> AFR[0] |= (8 << GPIO_AFRL_AFSEL7_Pos);					// AF8 для PC7
 
 	
