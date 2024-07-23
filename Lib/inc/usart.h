@@ -1,6 +1,13 @@
 #include "stm32f4xx.h"
 
 
+#define USART6_TESTBYTE (char)0xA5;
+
+//======= USART6 Error codes ================
+#define USART6_OK		0
+#define USART6_ERR		1
+
+
 
 
 

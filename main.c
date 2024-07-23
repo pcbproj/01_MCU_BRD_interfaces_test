@@ -16,32 +16,45 @@ USART6 - для RS485 подключения
 	stop bit = 1
 	parity = NO
 
-SPI:
-	bit rate = 
+SPI2:
+	bit rate = 1.3 MHz
 
 
 CAN2:
 	bit rate = 500 kBit/s;
-	FRAME_ID = 0x234;
+	TX_FRAME_ID = 0x565;
 	data_len = 1;
+
+	Принятый пакет данные отправить в USART1
+	Отправить тестовые данные один раз: пакет из 8 байтов
 
 
 Алгоритм проверки следующий:
-	++ На ветодиоды выводятся нажатые кнопки.
+	++ На светодиоды выводятся нажатые кнопки.
+	
+	В CAN2 отвечать тестовым пакетом на запрос REMOTE_FRAME:
+	REMOTE_FRAME_ID = 0x567
+	TX_FRAME_ID = 0x567
+	TX_DATA_LEN = 8
+	TX_DATA = 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08
 
 	В USART1 отправляется лог состояния проверок каждые 1000 мс
 		Лог содержит:
-		1. Нажатие кнопок
-		2. Принятый пакет по CAN2 поле данных
-		3. проверка I2C пройден или провал. (Таймауты чтобы не повиснуть)
+		1. проверка I2C пройден или провал. (Таймауты чтобы не повиснуть)
 			запись тестовых данных и чтение их. 
 			Сравнение с оригиналом.
-		4. Проверка SPI пройден или провал. (Таймауты чтобы не повиснуть)
+		
+		2. проверка работы USART6 по закольцованному интерфейсу: PC6 <-> PC7 перемычкой закорочены 
+
+		3. Проверка SPI пройден или провал. (Таймауты чтобы не повиснуть)
 			запись тестовых данных и чтение их. 
 			Сравнение с оригиналом.
 
-	В CAN2 каждые 1000 мс отправлется пакет с кодом нажатых кнопок
-	В USART6 каждые 1000 мс отправлять тестовые данные
+		4. Приходил ли пакет по CAN2. 
+	
+	В USART6 один раз отправляется тестовый байт данных. Закоротить USART6_TX на USART6_RX и сравнивать
+	отправленный байт и принятый байт. Если сходятся, то USART6 ОК.
+
 
 */
 
@@ -56,10 +69,10 @@ CAN2:
 
 #define I2C_ARRAYS_LEN		8
 
-const char Hello_str[25]		= "+++ System started! +++ \n"; 
-const char Buttons_str[19]		= "+++ Buttons Code = "; 
-const char I2C_Error_str[26]	= "--- I2C1 Test FAILED --- \n"; 
-const char I2C_Ok_str[39]		= "+++ I2C1 Test PASSED SECCESSFULLY +++ \n"; 
+//const char Hello_str[25]		= "+++ System started! +++ \n"; 
+//const char Buttons_str[19]		= "+++ Buttons Code = "; 
+//const char I2C_Error_str[26]	= "--- I2C1 Test FAILED --- \n"; 
+//const char I2C_Ok_str[39]		= "+++ I2C1 Test PASSED SECCESSFULLY +++ \n"; 
 
 
 char i2c_tx_array[I2C_ARRAYS_LEN] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };	// Массив записываетмый в EEPROM
@@ -106,8 +119,18 @@ int main(void) {
 	*/
 
 	char I2C_ErrorCode = 0;
+	char usart6_ErrorCode = USART6_OK;
 	char test_start = 0;
+	char SPI2_ErrCode = SPI2_OK;
+	char SPI2_rd_byte;
   	
+	uint16_t CAN2_RxFrameID, CAN2_RxDataLen;
+	
+	char CAN2_RxState = 0;
+	char CAN2_TxState = 0;
+	char CAN2_RxFlag = 0;
+
+	char CAN2_TxData[CAN_TX_DATA_LEN] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
   	
   	
   	RCC_Init();
@@ -117,6 +140,12 @@ int main(void) {
   	I2C_Init();
   	
 	USART1_Init();
+
+	USART6_Init();
+
+	SPI2_Init();
+
+	CAN2_Init();
   	
   	SysTick_Config(84000);		// настройка SysTick таймера на время отрабатывания = 1 мс
 								// 84000 = (AHB_freq / время_отрабатывания_таймера_в_мкс)
@@ -141,11 +170,31 @@ int main(void) {
 		BTN_Check(&btn_count, &btn_state_byte);		// проверка нажатия кнопок
 		
 		GPIOE->ODR = (~(btn_state_byte << 13));		// выдаем состояние кнопок на LED1-LED3
+		
+	
+
+		//========= CAN2 testing ========================
+		CAN2_RxState = CAN2_ReceiveMSG(&CAN2_RxFrameID,			// идентификатор фрейма CAN
+						&CAN2_RxDataLen,			// длина поля данных в байтах 0 - 8 байт
+						NULL						// массив байтов, принятый по CAN
+					);
+		
+		if(CAN2_RxState == CAN2_OK){		// CAN2 frame received
+			if(CAN2_RxFrameID & CAN_RI0R_RTR){	// Received REMOTE_FRAME
+				CAN2_TxState = CAN2_SendMSG(TX_FRAME_ID,			// идентификатор фрейма CAN 
+											CAN_TX_DATA_LEN,		// длина поля данных в байтах 0 - 8 байт
+											CAN2_TxData				// массив байтов, для  отправки по CAN
+											);
+				CAN2_RxFlag = 1;	// flag for succsessfull CAN2 reception and answer
+			}
+		}
+
 
 
 		if(USART1 -> SR & USART_SR_RXNE){		// IF USART1 received '1' 
 			if(USART1->DR == 0x31){
 				test_start = 1;
+				printf(" ==== Testing Started.... \n");
 			}
 			else{
 				test_start = 0;
@@ -155,7 +204,33 @@ int main(void) {
 			test_start = 0;
 		}
 
-		if{test_start){
+		if(test_start){
+			
+			//========= USART6 testing: 0xA5 - test byte =============
+			usart6_send(0xA5, 1);
+			Delay_ms(2);
+			
+			if(USART6->SR & USART_SR_RXNE) {
+				if(USART6->DR == 0xA5) usart6_ErrorCode = USART6_OK;
+				else usart6_ErrorCode = USART6_ERR;
+			} 
+			else{
+				usart6_ErrorCode = USART6_ERR;
+			}
+			
+			//======== LOG USART6 send ============
+			switch(usart6_ErrorCode){
+				case USART6_OK: 
+					printf("+++ USART6 Test PASSED +++ \n");
+					break;
+					
+				case USART6_ERR:
+					printf("--- USART6 Test FAILED --- \n");
+
+			} // switch(usart6_ErrorCode)
+
+
+
 
 			//============= I2C1 testing ==================
 			I2C_ErrCode = I2C_Write(eeprom_addr, i2c_tx_array, EEPROM_WR_LEN);	
@@ -169,20 +244,11 @@ int main(void) {
 				for(uint16_t i = 0; i < EEPROM_RD_LEN; i++){
 					if(i2c_tx_array[i] != i2c_rx_array[i]) I2C_ErrCode = I2C_ERR_DATA;
 				}
+
+				I2C_ErrCode = EEPROM_PageClear(eeprom_addr);	// clear EEPROM page after testing
 			}
 			
-			
-			
-			//========= SPI testing ========================
-			
-			
-			//========= CAN2 testing ========================
-			
-			
-			
-			//========= USART1 LOG Sending =================
-			printf(">>> Testing FINISHED. Writing test LOG: \n");
-			
+			//========= I2C1 LOG Sending =================
 			switch(I2C_ErrCode){
 				//case I2C_OK: 
 				//	printf("+++ I2C1 Test PASSED SECCESSFULLY +++ \n");
@@ -212,16 +278,70 @@ int main(void) {
 					printf("+++ I2C1 Test PASSED +++ \n");
 			}	// switch(I2C_ErrCode)
 			
-			// ======== LOG USART1 send ==========
 			
-			//======== LOG USART6 send ============
+
 			
+			//========= SPI testing ========================
+			// writing data into FLASH memory
+			CSLOW;
+			w25send(PG_PROG);		// send comand Page Prog to FLASH memory
+			// send adddres sector to be writed
+			w25send( ( ADDR >> 16 ) & 0xFF );		
+			w25send( ( ADDR >> 8 ) & 0xFF );	
+			w25send( ( ADDR ) & 0xFF );	
+			w25send(SPI2_TESTBYTE);
+			CSHIGH;
+			
+			// check for data writing complete
+			CSLOW;
+			w25send(RD_SR1);	// send command "read status register1"
+			while( ( w25send(0x00) & 0x01 ) == 1 ){};	// wait while BUSY-bit in cleared
+			CSHIGH;
+			
+			Delay_ms(10);
+			CSLOW;
+			w25send(RD_DATA);		// send comand "Read data" to FLASH memory
+			// send adddres to be readed
+			w25send( ( ADDR >> 16 ) & 0xFF );		
+			w25send( ( ADDR >> 8 ) & 0xFF );	
+			w25send( ( ADDR ) & 0xFF );	
+			SPI2_rd_byte = w25send(0x00);		// read data byte from FLASH
+			CSHIGH;
+		
+			Delay_ms(10);
+			
+			CSLOW;
+			w25send(SECT_ER);		// send comand Sector Erase to FLASH memory
+			
+			// send adddres sector to be erased
+			w25send( ( ADDR >> 16 ) & 0xFF );		
+			w25send( ( ADDR >> 8 ) & 0xFF );	
+			w25send( ( ADDR ) & 0xFF );	
+			CSHIGH;
+
+			// check for sector erase complete
+			CSLOW;
+			w25send(RD_SR1);	// send command "read status register1"
+			while( ( w25send(0x00) & 0x01 ) == 1 ){};	// wait while BUSY-bit in cleared
+			CSHIGH;
+
 			//======== LOG SPI send ===============
-			
+			if(SPI2_rd_byte == SPI2_TESTBYTE){
+				printf("+++ SPI2 Test PASSED +++ \n");
+			}
+			else{
+				printf("--- SPI2 Test FAILED --- \n");
+			};
+
 			
 			//========= LOG CAN2 send ===========
+			if(CAN2_RxFlag){
+				printf("+++ CAN2 Rx Tx Test PASSED +++ \n");
+			}
+			else{
+				printf("--- CAN2 Test FAILED OR NOT EXECUTED ---\n");
+			}
 		
-
 
 		}	// if (test_start)
 	}	// while(1)
