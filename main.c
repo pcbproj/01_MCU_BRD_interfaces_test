@@ -181,7 +181,7 @@ int main(void) {
 			
 			
 			//========= USART1 LOG Sending =================
-			printf(">>> Testing FINISHED. Testing LOG: \n");
+			printf(">>> Testing FINISHED. Writing test LOG: \n");
 			
 			switch(I2C_ErrCode){
 				//case I2C_OK: 
@@ -205,7 +205,7 @@ int main(void) {
 				break;
 				
 				case I2C_ERR_DATA:
-					printf("--- I2C1 Test FAILED = I2C DATA COMPARE ERROR --- \n");
+					printf("--- I2C1 Test FAILED = I2C RX TX DATA COMPARE ERROR --- \n");
 				break;
 				
 				default:
