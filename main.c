@@ -2,7 +2,8 @@
 Тест интерфейсов платы и МК:
 
 GPIO: кнопки и светодиоды
-I2C1
+
+I2C1: микросхема EEPROM
 
 USART1 - для RS232 - ПК связь. 
 	baudrate = 115200, 
@@ -19,26 +20,40 @@ USART6 - для RS485 подключения
 SPI2:
 	bit rate = 1.3 MHz
 
-
 CAN2:
 	bit rate = 500 kBit/s;
 	TX_FRAME_ID = 0x567;
 	data_len = 1;
 
-	Принятый пакет данные отправить в USART1
-	Отправить тестовые данные один раз: пакет из 8 байтов
-
-
-Алгоритм проверки следующий:
-	++ На светодиоды выводятся нажатые кнопки.
 	
-	В CAN2 отвечать тестовым пакетом на запрос REMOTE_FRAME:
-	REMOTE_FRAME_ID = 0x567
-	TX_FRAME_ID = 0x567
-	TX_DATA_LEN = 8
-	TX_DATA = 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08
+Алгоритм проверки следующий:
+	0. Подключение:
+		- Закоротить контакты С7 и С6 на разъеме Р5
+		- Подключить переходник RS232-USB
+		- подключить переходник CAN-USB
+		- Подключить питание через micro-USB разъем
 
-	В USART1 отправляется лог состояния проверок каждые 1000 мс
+	1. На светодиоды выводятся нажатые кнопки.
+	
+	2. В CAN2 отвечаем тем же пакетом данных на принятый фрейм:
+		RX_FRAME_ID = 0x567 - принимает фремы только с таким ID
+		TX_FRAME_ID = 0x567 - отвечает фреймами только с таким ID
+	
+	3. При подаче питания или сброве в USART1 выдается приглашение:
+		>>> System started! 
+		>>> Pressed buttons indicated on LEDS 
+		>>> For start testing, send byte 0x31 in HEX or character '1' 
+		при этом нажатия кнопок индицируются на светодиодах.
+		
+		Для проверки CAN требуется отправить DATA_FRAME с ID = 0x567 на плату на CAN2 через приложение CANgaroo.
+		И в приложении CANgaroo наблюдать ответный фрейм от платы.
+		
+		Для запуска тестов остальных интерфейсов по USART1 отправить символ '1' или ASCII-код = 0x31.
+
+	4. В USART6 один раз отправляется тестовый байт данных и сравнивается 
+		отправленный байт и принятый байт. Если сходятся, то USART6 ОК.
+
+	5. В USART1 отправляется лог состояния проверок каждые 1000 мс
 		Лог содержит:
 		1. проверка I2C пройден или провал. (Таймауты чтобы не повиснуть)
 			запись тестовых данных и чтение их. 
@@ -52,8 +67,7 @@ CAN2:
 
 		4. Приходил ли пакет по CAN2. 
 	
-	В USART6 один раз отправляется тестовый байт данных. Закоротить USART6_TX на USART6_RX и сравнивать
-	отправленный байт и принятый байт. Если сходятся, то USART6 ОК.
+	
 
 
 */
@@ -68,11 +82,6 @@ CAN2:
 #define COUNTER_1000_MS		1000	// 1000 ms for 1 second 
 
 #define I2C_ARRAYS_LEN		8
-
-//const char Hello_str[25]		= "+++ System started! +++ \n"; 
-//const char Buttons_str[19]		= "+++ Buttons Code = "; 
-//const char I2C_Error_str[26]	= "--- I2C1 Test FAILED --- \n"; 
-//const char I2C_Ok_str[39]		= "+++ I2C1 Test PASSED SECCESSFULLY +++ \n"; 
 
 
 char i2c_tx_array[I2C_ARRAYS_LEN] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };	// Массив записываетмый в EEPROM
@@ -125,6 +134,7 @@ int main(void) {
 	char SPI2_rd_byte;
   	
 	uint16_t CAN2_RxFrameID, CAN2_RxDataLen;
+	uint16_t CAN2_TxFrameID = TX_FRAME_ID, CAN2_TxDataLen;
 	
 	char CAN2_RxState = 0;
 	char CAN2_TxState = 0;
@@ -132,6 +142,7 @@ int main(void) {
 	char const usart6_test_byte = 0x5A;
 
 	char CAN2_TxData[CAN_TX_DATA_LEN] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+	char CAN2_RxData[CAN_RX_DATA_LEN] = {};
 
 	//char usart6_tx_array[1] = {0xA5};
   	
@@ -179,20 +190,21 @@ int main(void) {
 		//========= CAN2 testing ========================
 		CAN2_RxState = CAN2_ReceiveMSG(&CAN2_RxFrameID,			// идентификатор фрейма CAN
 						&CAN2_RxDataLen,			// длина поля данных в байтах 0 - 8 байт
-						NULL						// массив байтов, принятый по CAN
+						CAN2_RxData						// массив байтов, принятый по CAN
 					);
 		
+		Delay_ms(1);
+
 		if(CAN2_RxState == CAN2_OK){		// CAN2 frame received
-			if(CAN2_RxFrameID & CAN_RI0R_RTR){	// Received REMOTE_FRAME
-				CAN2_TxState = CAN2_SendMSG(TX_FRAME_ID,			// идентификатор фрейма CAN 
-											CAN_TX_DATA_LEN,		// длина поля данных в байтах 0 - 8 байт
-											CAN2_TxData				// массив байтов, для  отправки по CAN
+				CAN2_TxState = CAN2_SendMSG(CAN2_RxFrameID,			// идентификатор фрейма CAN 
+											CAN2_RxDataLen,		// длина поля данных в байтах 0 - 8 байт
+											CAN2_RxData				// массив байтов, для  отправки по CAN
 											);
-				CAN2_RxFlag = 1;	// flag for succsessfull CAN2 reception and answer
-			}
+				if(!CAN2_TxState) CAN2_RxFlag = 1;	// flag for succsessfull CAN2 reception and answer
+
 		}
 
-
+		
 
 		if(USART1 -> SR & USART_SR_RXNE){		// IF USART1 received '1' 
 			if(USART1->DR == 0x31){

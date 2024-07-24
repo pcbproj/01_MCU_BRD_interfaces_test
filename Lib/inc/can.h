@@ -7,6 +7,7 @@
 
 #define RX_FRAME_ID			0x567	// FRAME_ID сообщений, которые мы принимаем. остальные игнорируем
 #define TX_FRAME_ID			0x567	// FRAME_ID отправляемого сообщения
+#define CAN_RX_DATA_LEN		8		// количество байт данных в принимаемом сообщении CAN
 #define CAN_TX_DATA_LEN		8		// количество байт данных в отправляемом сообщении CAN
 
 #define CAN2_OK				0

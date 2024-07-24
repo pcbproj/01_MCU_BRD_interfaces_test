@@ -1,9 +1,7 @@
 <!DOCTYPE CrossStudio_Session_File>
 <session>
  <Bookmarks/>
- <Breakpoints groups="Breakpoints" active_group="Breakpoints">
-  <BreakpointListItem trigger="" line="80" counter="0" hardwareBreakpoint="" isFunctionBreakpoint="false" action="" expression="" group="Breakpoints" type="Breakpoint" state="2" filename="Lib/src/can.c" useHWbreakpoint="false"/>
- </Breakpoints>
+ <Breakpoints groups="Breakpoints" active_group="Breakpoints"/>
  <ExecutionProfileWindow/>
  <FrameBufferWindow>
   <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
@@ -59,13 +57,13 @@
  <Watch1>
   <Watches active="1" update="Never">
    <Watchpoint expression="S1_cnt" name="S1_cnt" radix="-1" linenumber="37" filename="Lib/src/gpio.c"/>
-   <Watchpoint expression="i2c_rx_array" name="i2c_rx_array" radix="16" linenumber="346" filename="main.c"/>
-   <Watchpoint expression="delay_cnt" name="delay_cnt" radix="10" linenumber="93" filename="main.c"/>
-   <Watchpoint expression="i2c_tx_array" name="i2c_tx_array" radix="-1" linenumber="248" filename="main.c"/>
-   <Watchpoint expression="I2C_ErrCode" name="I2C_ErrCode" radix="16" linenumber="246" filename="main.c"/>
-   <Watchpoint expression="SPI2_rd_byte" name="SPI2_rd_byte" radix="-1" linenumber="311" filename="main.c"/>
-   <Watchpoint expression="CAN2_RxFlag" name="CAN2_RxFlag" radix="-1" linenumber="341" filename="main.c"/>
-   <Watchpoint expression="CAN2_RxState" name="CAN2_RxState" radix="-1" linenumber="180" filename="main.c"/>
+   <Watchpoint expression="i2c_rx_array" name="i2c_rx_array" radix="16" linenumber="358" filename="main.c"/>
+   <Watchpoint expression="delay_cnt" name="delay_cnt" radix="10" linenumber="102" filename="main.c"/>
+   <Watchpoint expression="i2c_tx_array" name="i2c_tx_array" radix="-1" linenumber="260" filename="main.c"/>
+   <Watchpoint expression="I2C_ErrCode" name="I2C_ErrCode" radix="16" linenumber="258" filename="main.c"/>
+   <Watchpoint expression="SPI2_rd_byte" name="SPI2_rd_byte" radix="-1" linenumber="323" filename="main.c"/>
+   <Watchpoint expression="CAN2_RxFlag" name="CAN2_RxFlag" radix="-1" linenumber="353" filename="main.c"/>
+   <Watchpoint expression="CAN2_RxState" name="CAN2_RxState" radix="-1" linenumber="191" filename="main.c"/>
   </Watches>
  </Watch1>
  <Watch2>
@@ -78,7 +76,7 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="196" useTextEdit="1" path="main.c" left="0" top="177" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="32" y="67" useTextEdit="1" path="main.c" left="0" selected="1" top="36" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="6" useTextEdit="1" path="main.h" left="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="39" useTextEdit="1" openedFrom="D:/Work/PCBteach/docs/02_MY_projects/MCU/04_Board_Test/01_GPIO_interfaces_Test/main.c" path="Lib/src/usart.c" left="0" top="34" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="8" useTextEdit="1" path="Lib/inc/usart.h" left="0" top="0" codecName="Default"/>
@@ -87,9 +85,9 @@
   <SessionOpenFile windowGroup="DockEditLeft" x="33" y="27" useTextEdit="1" path="RCC_init.c" left="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" path="Lib/src/spi.c" left="0" top="0" codecName="Default"/>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" path="Lib/inc/spi.h" left="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="94" useTextEdit="1" openedFrom="D:/Work/PCBteach/docs/02_MY_projects/MCU/04_Board_Test/01_GPIO_interfaces_Test/main.c" path="Lib/src/can.c" left="0" selected="1" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="22" y="3" useTextEdit="1" path="Lib/inc/can.h" left="0" top="0" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="73" useTextEdit="1" path="Lib/src/gpio.c" left="0" top="51" codecName=""/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="47" y="62" useTextEdit="1" openedFrom="D:/Work/PCBteach/docs/02_MY_projects/MCU/04_Board_Test/01_GPIO_interfaces_Test/main.c" path="Lib/src/can.c" left="0" top="111" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="19" y="7" useTextEdit="1" path="Lib/inc/can.h" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="73" useTextEdit="1" path="Lib/src/gpio.c" left="0" top="32" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="interfaces_test" fileDialogDefaultFilter="*.h" autoConnectTarget="GDB Server" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Work/PCBteach/docs/02_MY_projects/MCU/04_Board_Test/01_GPIO_interfaces_Test" debugSearchPath="" autoConnectCapabilities="1343"/>
 </session>
